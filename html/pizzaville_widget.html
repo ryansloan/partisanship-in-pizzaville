@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<style>
+h3 {
+	color: #262626;
+	font-family: "Helvetica Neue Light", "Calibri Light","Arial Narrow", sans-serif;
+}
+.tooltip { 
+    position: absolute;     
+    text-align: center;     
+    width: 60px;          
+    height: 28px;         
+    padding: 2px;       
+    font: 12px sans-serif;    
+    background: #e6e2d3; 
+    border: 0px;    
+    border-radius: 8px;     
+    pointer-events: none;     
+}
+svg {
+  display: inline-block;
+}
+#weightEditor {
+  display: inline-block;
+  width: 120px;
+  background: #ffffff;
+  color:#262626;
+  font-family: "Helvetica Neue", "Calibri","Arial", sans-serif;
+  font-size:12px;
+  height: 180px;
+}
+.weightInput {
+  margin-left: 12px;
+  width: 40px;
+}
+.weightInputLabel {
+  width: 60px;
+  display: inline-block;
+  text-align:right;
+}
+#weightEditor button {
+  background: #777777;
+  color: #ffffff;
+  margin-top: 8px;
+  margin-left: 4px;
+}
+#visContainer {
+  display: inline-block;
+  background: #ffffff;
+  color:#262626;
+  font-family: "Helvetica Neue", "Calibri","Arial", sans-serif;
+  font-size:12px;
+  height: 180px;
+}
+#titleContainer {
+  font-family: "Helvetica Neue", "Calibri","Arial", sans-serif;
+  font-size:12px;
+}
+#titleContainer .rightTitle {
+  display: inline-block;
+  text-align: right;
+  margin-left: 100px;
+}
+#titleContainer .leftTitle {
+  display: inline-block;
+  text-align: left;
+}
+</style>
+<body>
+<h3>Political Positions in Pizzaville</h3>
+<div id = 'titleContainer'>
+<div class='leftTitle'><strong>Set Weights</strong></div><div class='rightTitle'><strong>Partisanship Graph</strong></div>
+</div>
+<div id='weightEditor'>
+<label class = 'weightInputLabel'>Cheese</label><input type='number' step=.1 class = 'weightInput' id='cheese' value=0 />
+<label class = 'weightInputLabel'>Pepperoni</label><input type='number' step=.1 class = 'weightInput' id='pepperoni' value=-1 />
+<label class = 'weightInputLabel'>Tofu</label><input type='number' step=.1 class = 'weightInput' id='tofu' value = 1 />
+<label class = 'weightInputLabel'>Jalapeños</label><input type='number' step=.1 class = 'weightInput' id='jalapenos' value = .7 />
+<button id='updateButton'>Update Graph</button>
+<button id = 'resetButton'>Reset Weights</button>
+</div>
+<div id = 'visContainer'>
+<svg></svg>
+
+</div>
+</body>
+<script src="http://d3js.org/d3.v4.min.js" charset="utf-8"></script>
+<script>
+//Get the latest weights, perform the dot product with each legislator's votes.
+function weight(d) {
+  var weights = [];
+  weights.push(document.getElementById("cheese").value);
+  weights.push(document.getElementById("pepperoni").value);
+  weights.push(document.getElementById("tofu").value);
+  weights.push(document.getElementById("jalapenos").value);
+  var val = 0;
+  for (var i=0;i<d.length;i++) {
+    val += d[i]*weights[i];
+  }
+  return val;
+}
+
+//Vote matrix. Legislators are manually grouped together if they have
+//the same votes so that their dots don't overlap, but you can change 
+//this by just adding new entries to the array.
+var vote_data = [["Washington<br />&Adams",[1,-1,1,1]],
+["Jefferson<br />& Madison",[1,1,-1,-1]],
+["Monroe", [1,1,-1,1]]];
+
+//The scale is used to convert the scores to coordinates on the screen.
+var xScale = d3.scaleLinear().domain([-3,3]).range([40,160]);
+
+
+
+//Create the tooltip.
+var tooltip = d3.select("body").append("div") 
+    .attr("class", "tooltip")       
+    .style("opacity", 0);
+
+//Setup the points on the visualization
+var svg = d3.select("body").select("svg")
+    .attr("width", 200)
+    .attr("height", 100);
+
+svg.selectAll("circle").data(vote_data).enter().insert("circle")
+  .attr("cx",function(d,i) { return xScale(weight(d[1])); })
+  .attr("cy","32px")
+  .attr("r",8)
+  .style("fill","#006622").on("mouseover", function(d,i) { 
+    tooltip.transition()
+        .duration(100)    
+        .style("opacity", .9);
+    tooltip.html(d[0])  
+          .style("left", (d3.event.pageX) + "px")   
+         .style("top", (d3.event.pageY - 28) + "px");    
+  }).on("mouseout", function(d) {   
+            tooltip.transition()    
+                .duration(500)    
+                .style("opacity", 0);
+  });
+
+//Event handlers for buttons
+d3.select("#updateButton").on("click",function (e) {
+      svg.selectAll("circle").transition().attr("cx", function(d,i) { return xScale(weight(d[1])); }).duration(500);
+  });
+d3.select("#resetButton").on("click",function (e) {
+  document.getElementById("cheese").value = 0;
+  document.getElementById("pepperoni").value=-1;
+  document.getElementById("tofu").value=1;
+  document.getElementById("jalapenos").value=.7;
+  svg.selectAll("circle").transition().attr("cx", function(d,i) { return xScale(weight(d[1])); }).duration(500);
+});
+</script>
+</html>
