@@ -4,7 +4,7 @@ A small collection of scripts and visualization used in my Partisanship in Pizza
 ## python-script
 Very simple python scripts that do Principal Component Analysis on a matrix of legislators and votes. Requires `pandas` and sklearn.
 
-##html
+## html
 Contains an interactive widget built with d3.js which allows you to manually update weights on votes and watch how the partisan scores change.
 
 
